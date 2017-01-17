@@ -16,15 +16,21 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
     @IBOutlet weak var tableView: UITableView!
     
     var locationManager: CLLocationManager!
+    var refreshManager: UIRefreshControl!
+    var dispatch = DispatchGroup()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        self.navigationItem.title = "Hello"
         
         // Set up TableView
         tableView.delegate = self
         tableView.dataSource = self
+        
+        // Set up pull to refresh
+        refreshManager = UIRefreshControl()
+        refreshManager.addTarget(self, action: #selector(refresh), for: UIControlEvents.valueChanged)
+        tableView.addSubview(refreshManager)
         
         // Set up Location
         locationManager = CLLocationManager()
@@ -33,6 +39,11 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
         locationManager.requestAlwaysAuthorization()
         
         addRoutes()
+        
+        let deadlineTime = DispatchTime.now() + .milliseconds(610)
+        DispatchQueue.main.asyncAfter(deadline: deadlineTime, execute: {
+            self.locationManager.startUpdatingLocation()
+        })
     }
     
     override func didReceiveMemoryWarning() {
@@ -40,49 +51,51 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
         // Dispose of any resources that can be recreated.
     }
     
+    func refresh(sender: AnyObject) {
+        locationManager.delegate = self
+        locationManager.startUpdatingLocation()
+        refreshManager.endRefreshing()
+    }
+    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let userLocation = locations[0]
+        print("Updating location...")
         manager.stopUpdatingLocation()
         
+        locationManager.delegate = nil
         self.navigationItem.title = "\(userLocation.coordinate.latitude), \(userLocation.coordinate.longitude)"
-        updateInfoToDisplay(currentLocation: userLocation)
+        updateNearestStopsToDisplay(currentLocation: userLocation)
     }
     
     func addRoutes() {
-        
         Alamofire.request("http://api.umd.io/v0/bus/routes").responseJSON { (response) in
             if let results = JSON(response.result.value!).array {
                 for result in results {
                     BusSystem.sharedInstance.addRoute(json: result)
+                    print("Getting route...")
                 }
             }
             
-            self.addStops()
-        }
-    }
-    
-    func addStops() {
-        
-        for route in BusSystem.sharedInstance.routes {
-            Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)").responseJSON(completionHandler: { (response) in
-                if let results = JSON(response.result.value!)["stops"].array {
-                    for result in results {
-                        route.addStop(json: result)
+            for route in BusSystem.sharedInstance.routes {
+                Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)").responseJSON { (response) in
+                    if let results = JSON(response.result.value!)["stops"].array {
+                        print("Getting routes for \(route.routeId!):")
+                        for result in results {
+                            route.addStop(json: result)
+                        }
                     }
                 }
-                
-                self.locationManager.startUpdatingLocation()
-            })
+            }
         }
-        
     }
     
-    func updateInfoToDisplay(currentLocation: CLLocation) {
+    func updateNearestStopsToDisplay(currentLocation: CLLocation) {
         var smallestDistance: CLLocationDistance?
         var closestStop: Stop?
+        BusSystem.sharedInstance.routesToDisplay = []
         
         for route in BusSystem.sharedInstance.routes {
-            
+            print("Updating nearest stop: \(route.routeTitle!)")
             smallestDistance = nil
             
             for stop in route.stops {
@@ -94,48 +107,51 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
                 }
             }
             
-            BusSystem.sharedInstance.addRouteToDisplay(route: route, stop: closestStop!)
-            updateTimes(route: route, stop: closestStop!)
+            if closestStop != nil {
+                BusSystem.sharedInstance.addRouteToDisplay(route: Route(route: route, stop: closestStop!, times: []))
+            }
         }
         
+        updateTimes()
     }
     
-    func updateTimes(route: Route, stop: Stop) {
-        var i = 0;
-        
+    func updateTimes() {
         for route in BusSystem.sharedInstance.routesToDisplay {
-            Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.route.routeId!)/arrivals/\(route.nearestStop.stopId!)").responseJSON { (response) in
-                print("http://api.umd.io/v0/bus/routes/\(route.route.routeId!)/arrivals/\(route.nearestStop.stopId!)")
-                if let results = JSON(response.result.value!)["predictions"].array {
-                    for result in results {
-                        BusSystem.sharedInstance.addTimesToDisplay(pos: i, json: result)
+            Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)/arrivals/\(route.stops[0].stopId!)").responseJSON { (response) in
+                if response.result.value != nil {
+                    if let results = JSON(response.result.value!)["predictions"]["direction"]["prediction"].array {
+                        for result in results {
+                            print(result)
+                            route.times.append(result["minutes"].intValue)
+                        }
                     }
                 }
-                
             }
-            i += 1
+            
         }
         
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
     }
-    
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! CustomCell
         let route = BusSystem.sharedInstance.routesToDisplay[indexPath.row]
         
-        cell.routeName.text = route.route.routeTitle
         
-        cell.nearestStopName.text = route.nearestStop.stopTitle
+        cell.routeName.text = route.routeTitle!
+        cell.nearestStopName.text = route.stops[0].stopTitle!
         
         if route.times.count > 0 {
-            cell.times.text = String(route.times[0]!)
+            cell.times.text = String(route.times[0])
         }
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return BusSystem.sharedInstance.routes.count
+        return BusSystem.sharedInstance.routesToDisplay.count
     }
     
 }

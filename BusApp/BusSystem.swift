@@ -10,45 +10,51 @@ import Foundation
 import CoreLocation
 import SwiftyJSON
 
-class BusSystem {
+class BusSystem: NSObject {
     static let sharedInstance = BusSystem()
     var routes = [Route]()
-    var routesToDisplay = [RouteToDisplay]()
+    var routesToDisplay = [Route]()
     
     func addRoute(json: JSON) {
         routes.append(Route(json: json))
     }
     
-    func addRouteToDisplay(route: Route, stop: Stop) {
-        routesToDisplay.append(RouteToDisplay(route: route, nearestStop: stop, times: []))
-    }
-    
-    func addTimesToDisplay(pos: Int, json: JSON) {
-        routesToDisplay[pos].times.append(json["minutes"].intValue)
+    func addRouteToDisplay(route: Route) {
+        routesToDisplay.append(route)
     }
 }
 
-class Route {
+class Route: NSObject {
     var routeId: String?
     var routeTitle: String?
     var stops = [Stop]()
+    var times = [Int]()
     
+    // Constructors
     init(json: JSON) {
         routeId = json["route_id"].stringValue
         routeTitle = json["title"].stringValue
     }
     
-    init() {
-        
+    init(route: Route, stop: Stop, times: [Int]) {
+        routeId = route.routeId!
+        routeTitle = route.routeTitle!
+        stops.append(stop)
+        self.times = times
     }
     
+    // Add data
     func addStop(json: JSON) {
         stops.append(Stop(json: json))
     }
     
+    func addTimes(json: JSON) {
+        times.append(json["minutes"].intValue)
+    }
+    
 }
 
-class Stop {
+class Stop: NSObject {
     var stopId: String?
     var stopTitle: String?
     var coordinates: CLLocation?
@@ -58,15 +64,5 @@ class Stop {
         stopTitle = json["title"].stringValue
         coordinates = CLLocation(latitude: json["lat"].doubleValue, longitude: json["lon"].doubleValue)
     }
-    
-    init() {
-        
-    }
-    
-}
 
-struct RouteToDisplay {
-    var route = Route()
-    var nearestStop = Stop()
-    var times = [Int?]()
 }
