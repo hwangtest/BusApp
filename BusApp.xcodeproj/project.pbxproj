@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0ABA82B5EE26333350CDDE44 /* Pods_BusApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EDA5EDA95DF5C9BFC68E2E41 /* Pods_BusApp.framework */; };
+		1419660D1E31884700A97F3F /* DataParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1419660C1E31884700A97F3F /* DataParser.swift */; };
 		1438B3A01DEE5910000C2BC7 /* CustomCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1438B39F1DEE5910000C2BC7 /* CustomCell.swift */; };
 		1438B3A41DEE5A8A000C2BC7 /* BusSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1438B3A31DEE5A8A000C2BC7 /* BusSystem.swift */; };
 		14E815831DEE572D005122A1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E815821DEE572D005122A1 /* AppDelegate.swift */; };
@@ -19,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1419660C1E31884700A97F3F /* DataParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataParser.swift; sourceTree = "<group>"; };
 		1433BC041DF0A26F00C9A2B1 /* BusApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BusApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1438B39F1DEE5910000C2BC7 /* CustomCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomCell.swift; sourceTree = "<group>"; };
 		1438B3A31DEE5A8A000C2BC7 /* BusSystem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BusSystem.swift; sourceTree = "<group>"; };
@@ -68,6 +70,7 @@
 		14E815811DEE572D005122A1 /* BusApp */ = {
 			isa = PBXGroup;
 			children = (
+				1419660C1E31884700A97F3F /* DataParser.swift */,
 				1438B3A31DEE5A8A000C2BC7 /* BusSystem.swift */,
 				14E815841DEE572D005122A1 /* FirstViewController.swift */,
 				14E815861DEE572D005122A1 /* SecondViewController.swift */,
@@ -213,6 +216,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1419660D1E31884700A97F3F /* DataParser.swift in Sources */,
 				14E815871DEE572D005122A1 /* SecondViewController.swift in Sources */,
 				14E815831DEE572D005122A1 /* AppDelegate.swift in Sources */,
 				1438B3A01DEE5910000C2BC7 /* CustomCell.swift in Sources */,

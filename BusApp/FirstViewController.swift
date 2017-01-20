@@ -38,9 +38,9 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
         locationManager.requestAlwaysAuthorization()
         
-        addRoutes()
+        DataParser.sharedInstance.addRoutes()
         
-        let deadlineTime = DispatchTime.now() + .milliseconds(610)
+        let deadlineTime = DispatchTime.now() + .milliseconds(500)
         DispatchQueue.main.asyncAfter(deadline: deadlineTime, execute: {
             self.locationManager.startUpdatingLocation()
         })
@@ -64,87 +64,44 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
         
         locationManager.delegate = nil
         self.navigationItem.title = "\(userLocation.coordinate.latitude), \(userLocation.coordinate.longitude)"
-        updateNearestStopsToDisplay(currentLocation: userLocation)
+        DataParser.sharedInstance.updateNearestStopsToDisplay(currentLocation: userLocation)
+        
+        
+        let time = DispatchTime.now() + .milliseconds(1500)
+        DispatchQueue.main.asyncAfter(deadline: time, execute: {
+            
+            for route in BusSystem.sharedInstance.routesToDisplay {
+                print(route.nearestStop!.stopTitle!)
+            }
+            
+            if BusSystem.sharedInstance.routesToDisplay.count > 0 {
+                self.tableView.reloadData()
+            }
+        })
+        
     }
     
-    func addRoutes() {
-        Alamofire.request("http://api.umd.io/v0/bus/routes").responseJSON { (response) in
-            if let results = JSON(response.result.value!).array {
-                for result in results {
-                    BusSystem.sharedInstance.addRoute(json: result)
-                    print("Getting route...")
-                }
-            }
-            
-            for route in BusSystem.sharedInstance.routes {
-                Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)").responseJSON { (response) in
-                    if let results = JSON(response.result.value!)["stops"].array {
-                        print("Getting routes for \(route.routeId!):")
-                        for result in results {
-                            route.addStop(json: result)
-                        }
-                    }
-                }
-            }
-        }
-    }
     
-    func updateNearestStopsToDisplay(currentLocation: CLLocation) {
-        var smallestDistance: CLLocationDistance?
-        var closestStop: Stop?
-        BusSystem.sharedInstance.routesToDisplay = []
-        
-        for route in BusSystem.sharedInstance.routes {
-            print("Updating nearest stop: \(route.routeTitle!)")
-            smallestDistance = nil
-            
-            for stop in route.stops {
-                let distance = currentLocation.distance(from: stop.coordinates!)
-                
-                if smallestDistance == nil || distance < smallestDistance! {
-                    smallestDistance = distance
-                    closestStop = stop
-                }
-            }
-            
-            if closestStop != nil {
-                BusSystem.sharedInstance.addRouteToDisplay(route: Route(route: route, stop: closestStop!, times: []))
-            }
-        }
-        
-        updateTimes()
-    }
     
-    func updateTimes() {
-        for route in BusSystem.sharedInstance.routesToDisplay {
-            Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)/arrivals/\(route.stops[0].stopId!)").responseJSON { (response) in
-                if response.result.value != nil {
-                    if let results = JSON(response.result.value!)["predictions"]["direction"]["prediction"].array {
-                        for result in results {
-                            print(result)
-                            route.times.append(result["minutes"].intValue)
-                        }
-                    }
-                }
-            }
-            
-        }
-        
-        DispatchQueue.main.async {
-            self.tableView.reloadData()
-        }
-    }
+    
+    // MARK: TableView stuff ==========================================================================================================
+    
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        print(BusSystem.sharedInstance.routesToDisplay.count)
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! CustomCell
         let route = BusSystem.sharedInstance.routesToDisplay[indexPath.row]
         
         
         cell.routeName.text = route.routeTitle!
-        cell.nearestStopName.text = route.stops[0].stopTitle!
+        cell.nearestStopName.text = route.nearestStop!.stopTitle!
         
-        if route.times.count > 0 {
-            cell.times.text = String(route.times[0])
+        if route.times.count > 2 {
+            cell.times.text = "\(route.times[0]), \(route.times[1])"
+        }
+            
+        else {
+            cell.times.text = "\(route.times[0])"
         }
         
         return cell
@@ -152,6 +109,28 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return BusSystem.sharedInstance.routesToDisplay.count
+    }
+    
+    
+    // Swipe action for cells
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        let addFavorite = UITableViewRowAction(style: .normal, title: "Add Favorite") { action, index in
+            print("Added")
+            tableView.setEditing(false, animated: true)
+            
+        }
+        
+        addFavorite.backgroundColor = UIColor.orange
+        
+        return[addFavorite]
+    }
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        
     }
     
 }

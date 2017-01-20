@@ -14,19 +14,22 @@ class BusSystem: NSObject {
     static let sharedInstance = BusSystem()
     var routes = [Route]()
     var routesToDisplay = [Route]()
+    var favorites = [Route]()
     
     func addRoute(json: JSON) {
         routes.append(Route(json: json))
     }
     
-    func addRouteToDisplay(route: Route) {
-        routesToDisplay.append(route)
+    func addRouteToFavorite(route: Route) {
+        favorites.append(route)
     }
+    
 }
 
 class Route: NSObject {
     var routeId: String?
     var routeTitle: String?
+    var nearestStop: Stop?
     var stops = [Stop]()
     var times = [Int]()
     
@@ -43,13 +46,17 @@ class Route: NSObject {
         self.times = times
     }
     
-    // Add data
+    // Add methods
     func addStop(json: JSON) {
         stops.append(Stop(json: json))
     }
     
     func addTimes(json: JSON) {
         times.append(json["minutes"].intValue)
+    }
+    
+    func addNearestStop(stop: Stop) {
+        nearestStop = stop
     }
     
 }
