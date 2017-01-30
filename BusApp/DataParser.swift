@@ -13,6 +13,7 @@ import Alamofire
 
 class DataParser: NSObject {
     static let sharedInstance = DataParser()
+    let firstVC = FirstViewController()
     
     func addRoutes() {
         print("Getting routes...")
@@ -36,33 +37,7 @@ class DataParser: NSObject {
         }
     }
     
-    func updateNearestStopsToDisplay(currentLocation: CLLocation) {
-        var smallestDistance: CLLocationDistance?
-        var closestStop: Stop?
-        
-        BusSystem.sharedInstance.routesToDisplay.removeAll()
-        
-        for route in BusSystem.sharedInstance.routes {
-            
-            smallestDistance = nil
-            
-            for stop in route.stops {
-                let distance = currentLocation.distance(from: stop.coordinates!)
-                
-                if smallestDistance == nil || distance < smallestDistance! {
-                    smallestDistance = distance
-                    closestStop = stop
-                }
-            }
-            
-            if closestStop != nil {
-                route.nearestStop = closestStop!
-            }
-            
-            updateTimes(route: route)
-        }
-        
-    }
+
     
     func updateTimes(route: Route) {
         
@@ -83,9 +58,6 @@ class DataParser: NSObject {
             
         }
         
-        DispatchQueue.main.async{
-            
-        }
         
     }
     
