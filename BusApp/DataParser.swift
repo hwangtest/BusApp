@@ -35,14 +35,12 @@ class DataParser: NSObject {
             }
         }
     }
-
+    
     func updateNearestStopsToDisplay(currentLocation: CLLocation) {
         var smallestDistance: CLLocationDistance?
         var closestStop: Stop?
         
         BusSystem.sharedInstance.routesToDisplay.removeAll()
-        
-        print("Updating nearest stops...")
         
         for route in BusSystem.sharedInstance.routes {
             
@@ -60,32 +58,35 @@ class DataParser: NSObject {
             if closestStop != nil {
                 route.nearestStop = closestStop!
             }
+            
+            updateTimes(route: route)
         }
         
-        print("Updating times...")
-        updateTimes()
     }
     
-    func updateTimes() {
-        for route in BusSystem.sharedInstance.routes {
-            Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)/arrivals/\(route.nearestStop!.stopId!)").responseJSON { (response) in
-                if response.result.value != nil {
-                    if let results = JSON(response.result.value!)["predictions"]["direction"]["prediction"].array {
-                        route.times.removeAll()
-                        
-                        for result in results {
-                            print("Getting time for \(route.routeTitle!)")
-                            route.times.append(result["minutes"].intValue)
-                        }
-                        
-                        BusSystem.sharedInstance.routesToDisplay.append(route)
-                        print("Added route with time to display")
+    func updateTimes(route: Route) {
+        
+        Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)/arrivals/\(route.nearestStop!.stopId!)").responseJSON { (response) in
+            if response.result.value != nil {
+                if let results = JSON(response.result.value!)["predictions"]["direction"]["prediction"].array {
+                    route.times.removeAll()
+                    
+                    for result in results {
+                        print("Getting time for \(route.routeTitle!)")
+                        route.times.append(result["minutes"].intValue)
                     }
+                    
+                    BusSystem.sharedInstance.routesToDisplay.append(route)
+                    print("Added route with time to display")
                 }
-                
             }
             
         }
+        
+        DispatchQueue.main.async{
+            
+        }
+        
     }
     
 }
