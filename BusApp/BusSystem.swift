@@ -39,14 +39,7 @@ class Route: NSObject {
         routeId = json["route_id"].stringValue
         routeTitle = json["title"].stringValue
     }
-    
-    init(route: Route, stop: Stop, times: [Int]) {
-        routeId = route.routeId!
-        routeTitle = route.routeTitle!
-        stops.append(stop)
-        self.times = times
-    }
-    
+
     // Add methods
     func addStop(json: JSON) {
         stops.append(Stop(json: json))

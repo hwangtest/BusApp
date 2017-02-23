@@ -22,7 +22,6 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
         
         // Set up TableView
         tableView.delegate = self
@@ -39,14 +38,34 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
         locationManager.requestAlwaysAuthorization()
         
+        // Loading Indicator HUD
         PKHUD.sharedHUD.contentView = PKHUDProgressView()
         
-        DataParser.sharedInstance.addRoutes()
-        
-        let deadlineTime = DispatchTime.now() + .milliseconds(500)
-        DispatchQueue.main.asyncAfter(deadline: deadlineTime, execute: {
-            self.locationManager.startUpdatingLocation()
-        })
+        Alamofire.request("http://api.umd.io/v0/bus/routes").responseJSON { (response) in
+            if let results = JSON(response.result.value!).array {
+                for result in results {
+                    BusSystem.sharedInstance.addRoute(json: result)
+                }
+            }
+            print("Routes added")
+            
+            for route in BusSystem.sharedInstance.routes {
+                self.dispatch.enter()
+                Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)").responseJSON { (response) in
+                    if let results = JSON(response.result.value!)["stops"].array {
+                        for result in results {
+                            route.addStop(json: result)
+                        }
+                    }
+                    self.dispatch.leave()
+                    print("Getting stops")
+                }
+            }
+            
+            self.dispatch.notify(queue: .main) {
+                self.locationManager.startUpdatingLocation()
+            }
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -63,22 +82,21 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let userLocation = locations[0]
         print("Updating location...")
-        print("b")
         manager.stopUpdatingLocation()
         
         locationManager.delegate = nil
-        tableView.dataSource = nil
         self.navigationItem.title = "\(userLocation.coordinate.latitude), \(userLocation.coordinate.longitude)"
+        tableView.dataSource = self
         updateNearestStopsToDisplay(currentLocation: userLocation)
-        PKHUD.sharedHUD.show()
-        
-        let deadlineTime = DispatchTime.now() + .milliseconds(1500)
-        DispatchQueue.main.asyncAfter(deadline: deadlineTime, execute: {
-            PKHUD.sharedHUD.hide(false)
-            self.tableView.reloadData()
-        })
+        //        PKHUD.sharedHUD.show()
+        //
+        //        let deadlineTime = DispatchTime.now() + .milliseconds(1750)
+        //        DispatchQueue.main.asyncAfter(deadline: deadlineTime, execute: {
+        //            PKHUD.sharedHUD.hide(false)
+        //        })
         
     }
+
     
     func updateNearestStopsToDisplay(currentLocation: CLLocation) {
         var smallestDistance: CLLocationDistance?
@@ -103,11 +121,37 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
                 route.nearestStop = closestStop!
             }
             
-            DataParser.sharedInstance.updateTimes(route: route)
+            updateTimes(route: route)
+        }
+    }
+    
+    func updateTimes(route: Route) {
+        
+        Alamofire.request("http://api.umd.io/v0/bus/routes/\(route.routeId!)/arrivals/\(route.nearestStop!.stopId!)").responseJSON { (response) in
+            if response.result.value != nil {
+                if let results = JSON(response.result.value!)["predictions"]["direction"]["prediction"].array {
+                    route.times.removeAll()
+                    
+                    
+                    for result in results {
+                        print("Getting time for \(route.routeTitle!)")
+                        route.times.append(result["minutes"].intValue)
+                    }
+                    
+                    DispatchQueue.main.async {
+                        BusSystem.sharedInstance.routesToDisplay.append(route)
+                    }
+                    
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                    }
+                    print("Added route with time to display")
+                }
+                
+            }
+            
         }
         
-        self.tableView.dataSource = self
-        print("a")
     }
     
     
@@ -117,20 +161,20 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         print(BusSystem.sharedInstance.routesToDisplay.count)
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! CustomCell
-        let route = BusSystem.sharedInstance.routesToDisplay[indexPath.row]
         
-        
-        cell.routeName.text = route.routeTitle!
-        cell.nearestStopName.text = route.nearestStop!.stopTitle!
-        
-        if route.times.count > 2 {
-            cell.times.text = "\(route.times[0]), \(route.times[1])"
-        }
+        if indexPath.section < BusSystem.sharedInstance.routesToDisplay.count {
+            let route = BusSystem.sharedInstance.routesToDisplay[indexPath.row]
+            cell.routeName.text = route.routeTitle!
+            cell.nearestStopName.text = route.nearestStop!.stopTitle!
             
-        else {
-            cell.times.text = "\(route.times[0])"
+            if route.times.count > 2 {
+                cell.times.text = "\(route.times[0]), \(route.times[1])"
+            }
+                
+            else {
+                cell.times.text = "\(route.times[0])"
+            }
         }
-        
         return cell
     }
     
@@ -143,7 +187,9 @@ class FirstViewController: UIViewController, UITableViewDelegate, UITableViewDat
     // Swipe action for cells
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         let addFavorite = UITableViewRowAction(style: .normal, title: "Add Favorite") { action, index in
-            print("Added")
+            //            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+            //            let favorite = Favorites(context: context)
+            
             tableView.setEditing(false, animated: true)
             
         }

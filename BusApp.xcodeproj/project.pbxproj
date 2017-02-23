@@ -8,9 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		0ABA82B5EE26333350CDDE44 /* Pods_BusApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EDA5EDA95DF5C9BFC68E2E41 /* Pods_BusApp.framework */; };
-		1419660D1E31884700A97F3F /* DataParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1419660C1E31884700A97F3F /* DataParser.swift */; };
 		1438B3A01DEE5910000C2BC7 /* CustomCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1438B39F1DEE5910000C2BC7 /* CustomCell.swift */; };
 		1438B3A41DEE5A8A000C2BC7 /* BusSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1438B3A31DEE5A8A000C2BC7 /* BusSystem.swift */; };
+		147A9ED01E40230B007A62A0 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 147A9ECF1E40230B007A62A0 /* CoreData.framework */; };
+		147A9ED31E40233A007A62A0 /* BusAppCoreData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 147A9ED11E40233A007A62A0 /* BusAppCoreData.xcdatamodeld */; };
 		14E815831DEE572D005122A1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E815821DEE572D005122A1 /* AppDelegate.swift */; };
 		14E815851DEE572D005122A1 /* FirstViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E815841DEE572D005122A1 /* FirstViewController.swift */; };
 		14E815871DEE572D005122A1 /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E815861DEE572D005122A1 /* SecondViewController.swift */; };
@@ -20,10 +21,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1419660C1E31884700A97F3F /* DataParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataParser.swift; sourceTree = "<group>"; };
 		1433BC041DF0A26F00C9A2B1 /* BusApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BusApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1438B39F1DEE5910000C2BC7 /* CustomCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomCell.swift; sourceTree = "<group>"; };
 		1438B3A31DEE5A8A000C2BC7 /* BusSystem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BusSystem.swift; sourceTree = "<group>"; };
+		147A9ECF1E40230B007A62A0 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		147A9ED21E40233A007A62A0 /* BusAppCoreData.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BusAppCoreData.xcdatamodel; sourceTree = "<group>"; };
 		14E815821DEE572D005122A1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		14E815841DEE572D005122A1 /* FirstViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstViewController.swift; sourceTree = "<group>"; };
 		14E815861DEE572D005122A1 /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
@@ -41,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				147A9ED01E40230B007A62A0 /* CoreData.framework in Frameworks */,
 				0ABA82B5EE26333350CDDE44 /* Pods_BusApp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,9 +73,9 @@
 		14E815811DEE572D005122A1 /* BusApp */ = {
 			isa = PBXGroup;
 			children = (
-				1419660C1E31884700A97F3F /* DataParser.swift */,
-				1438B3A31DEE5A8A000C2BC7 /* BusSystem.swift */,
+				147A9ED11E40233A007A62A0 /* BusAppCoreData.xcdatamodeld */,
 				14E815841DEE572D005122A1 /* FirstViewController.swift */,
+				1438B3A31DEE5A8A000C2BC7 /* BusSystem.swift */,
 				14E815861DEE572D005122A1 /* SecondViewController.swift */,
 				14E815881DEE572D005122A1 /* Main.storyboard */,
 				1438B39F1DEE5910000C2BC7 /* CustomCell.swift */,
@@ -87,6 +90,7 @@
 		F1445D222CB7423FB6403043 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				147A9ECF1E40230B007A62A0 /* CoreData.framework */,
 				EDA5EDA95DF5C9BFC68E2E41 /* Pods_BusApp.framework */,
 			);
 			name = Frameworks;
@@ -216,10 +220,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1419660D1E31884700A97F3F /* DataParser.swift in Sources */,
 				14E815871DEE572D005122A1 /* SecondViewController.swift in Sources */,
 				14E815831DEE572D005122A1 /* AppDelegate.swift in Sources */,
 				1438B3A01DEE5910000C2BC7 /* CustomCell.swift in Sources */,
+				147A9ED31E40233A007A62A0 /* BusAppCoreData.xcdatamodeld in Sources */,
 				14E815851DEE572D005122A1 /* FirstViewController.swift in Sources */,
 				1438B3A41DEE5A8A000C2BC7 /* BusSystem.swift in Sources */,
 			);
@@ -392,6 +396,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		147A9ED11E40233A007A62A0 /* BusAppCoreData.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				147A9ED21E40233A007A62A0 /* BusAppCoreData.xcdatamodel */,
+			);
+			currentVersion = 147A9ED21E40233A007A62A0 /* BusAppCoreData.xcdatamodel */;
+			path = BusAppCoreData.xcdatamodeld;
+			sourceTree = SOURCE_ROOT;
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 14E815771DEE572D005122A1 /* Project object */;
 }
